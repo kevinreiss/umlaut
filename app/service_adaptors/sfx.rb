@@ -381,6 +381,7 @@ class Sfx < Service
       #Rails.logger.info(response_queue['fulltext'])
       response_queue["fulltext"] = roll_up_responses(response_queue["fulltext"], :coverage_sensitive => request.title_level_citation? )
       response_queue["fulltext"] = sort_preferred_responses(response_queue["fulltext"])
+      response_queue["fulltext"] = sort_sunk_responses(response_queue["fulltext"])
     end
 
     # Now that they've been post-processed, actually commit them.
@@ -521,12 +522,19 @@ class Sfx < Service
   end
 
   def sort_preferred_responses(list)
-
+    
     preferred_targets = @preferred_targets
     non_preferred_targets = list.reject {|a| preferred_targets.include?(a[:sfx_target_name])}
     available_preferred_targets = list.select {|a| preferred_targets.include?(a[:sfx_target_name])}
-    #list = list.sort {|a,b| a[:sfx_target_name] <=> b[:sfx_target_name]}.reverse 
     return available_preferred_targets + non_preferred_targets
+  end
+
+  def sort_sunk_responses(list)
+    
+    sunk_targets = @sunk_targets
+    preferred_targets = list.reject {|a| sunk_targets.include?(a[:sfx_target_name])}
+    available_sunk_targets = list.select {|a| sunk_targets.include?(a[:sfx_target_name])}
+    return preferred_targets + available_sunk_targets
   end
 
   def sfx_click_passthrough
